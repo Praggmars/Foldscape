@@ -1,8 +1,8 @@
 CC = g++
-CFLAGS = -MMD -MP -std=c++20 -c -g -Wall `pkg-config --cflags gtk4`
+CFLAGS = -MMD -MP -std=c++20 -c -g3 -O2 -Wall `pkg-config --cflags gtk4`
 OBJS = main.o application.o
 DEPS = Makefile application.h
-LIBS = `pkg-config --libs gtk4`
+LIBS = -lepoxy `pkg-config --libs gtk4`
 PROJNAME = Foldscape
 
 all: $(PROJNAME)
