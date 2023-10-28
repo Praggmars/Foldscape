@@ -12,6 +12,13 @@ namespace foldscape
         guint m_vertexBuffer;
         guint m_positionLocation;
         guint m_program;
+        
+        guint m_shaderDataCenter;
+        guint m_shaderDataZoom;
+        guint m_shaderDataAspectRatio;
+
+        float m_center[2];
+        float m_zoom;
 
     private:
         void Init(const char* title, int width, int height);

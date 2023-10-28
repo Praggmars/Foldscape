@@ -24,19 +24,58 @@ namespace foldscape
         const char g_VsCode[] = R"(#version 130
 in vec3 position;
 smooth out vec2 coord;
+
+uniform vec2 center;
+uniform float zoom;
+uniform float aspectRatio;
+
 void main()
 {
     gl_Position = vec4(position, 1.0f);
-    coord = vec2(position.x, position.y);
+    coord = vec2(position.x * aspectRatio, position.y) * zoom + center;
 }
 )";
 
         const char g_FsCode[] = R"(#version 130
 smooth in vec2 coord;
 out vec4 outputColor;
+
+vec2 Cpx_mul(vec2 z1, vec2 z2)
+{
+    return vec2(z1.x * z2.x - z1.y * z2.y, z1.x * z2.y + z2.x * z1.y);
+}
+
+vec4 ToColor(float r)
+{
+    const vec3 colors[5] = vec3[](
+        vec3(0.0f, 7.0f, 100.0f) / 255.0f,
+        vec3(32.0f, 107.0f, 203.0f) / 255.0f,
+        vec3(237.0f, 255.0f, 255.0f) / 255.0f,
+        vec3(255.0f, 170.0f, 0.0f) / 255.0f,
+        vec3(0.0f, 2.0f, 0.0f) / 255.0f);
+        
+    vec3 c1 = colors[int(mod(r, 5.0f))];
+    vec3 c2 = colors[int(mod(r + 1.0f, 5.0f))];
+    return vec4(mix(c1, c2, mod(r, 1.0f)), 1.0f);
+}
+
+vec4 FractalColor()
+{
+    vec2 z = vec2(0.0f, 0.0f);
+    vec2 c = coord;
+    for (float i = 0.0f; i < 256.0f; ++i)
+    {
+        z = Cpx_mul(z, z) + c;
+        float len = length(z);
+        if (16.0f < len)
+            return ToColor((i + 1.0f - log(log(len)) / log(2.0f)) / 4.0f);
+    }
+    return vec4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 void main()
 {
-    outputColor = vec4(coord.x * 0.5f + 0.5f, coord.y * 0.5f + 0.5f, 0.0f, 1.0f);
+    outputColor = FractalColor();
 }
 )";
     }
@@ -72,6 +111,11 @@ void main()
         , m_vertexBuffer{0}
         , m_positionLocation{0}
         , m_program{0}
+        , m_shaderDataCenter{0}
+        , m_shaderDataZoom{0}
+        , m_shaderDataAspectRatio{0}
+        , m_center{-0.5f, 0.0f}
+        , m_zoom{1.25f}
     {
     }
 
@@ -180,6 +224,10 @@ void main()
         }
 
         m_positionLocation = glGetAttribLocation(m_program, "position");
+        m_shaderDataCenter = glGetUniformLocation(m_program, "center");
+        m_shaderDataZoom = glGetUniformLocation(m_program, "zoom");
+        m_shaderDataAspectRatio = glGetUniformLocation(m_program, "aspectRatio");
+
         glDetachShader(m_program, vertexShader);
         glDeleteShader(vertexShader);
         glDetachShader(m_program, fragmentShader);
@@ -247,6 +295,11 @@ void main()
         glClear(GL_COLOR_BUFFER_BIT);
         
         glUseProgram(m_program);
+
+        glUniform2f(m_shaderDataCenter, m_center[0], m_center[1]);
+        glUniform1f(m_shaderDataZoom, m_zoom);
+        glUniform1f(m_shaderDataAspectRatio, static_cast<float>(gtk_widget_get_width(m_glArea)) / static_cast<float>(gtk_widget_get_height(m_glArea)));
+
         glBindVertexArray(m_vertexBuffer);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
