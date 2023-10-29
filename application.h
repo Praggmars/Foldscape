@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gtk/gtk.h>
+#include "graphics.h"
 
 namespace foldscape
 {
@@ -9,13 +9,8 @@ namespace foldscape
         GtkApplication* m_gtkApp;
         GtkWidget* m_mainWindow;
         GtkWidget* m_glArea;
-        guint m_vertexBuffer;
-        guint m_positionLocation;
-        guint m_program;
-        
-        guint m_shaderDataCenter;
-        guint m_shaderDataZoom;
-        guint m_shaderDataAspectRatio;
+
+        Graphics m_graphics;
 
         float m_center[2];
         float m_zoom;
@@ -23,13 +18,7 @@ namespace foldscape
     private:
         void Init(const char* title, int width, int height);
         void CreateGlArea();
-
-        void OpenGlInit();
-        GError* OpenGlInitShaders();
-        void OpenGlInitBuffers();
-        void OpenGlDeinit();
-        void OpenGlResize(int width, int height);
-        void GlRender() const;
+        void Render() const;
 
     public:
         Application();
