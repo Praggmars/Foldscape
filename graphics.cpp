@@ -86,6 +86,7 @@ void main()
 
         shader = glCreateShader(shaderType);
         glShaderSource(shader, 1, &code, nullptr);
+        glCompileShader(shader);
 
         GLint status;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
